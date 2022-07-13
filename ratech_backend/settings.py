@@ -128,11 +128,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = '/static/'
-# STATIC_URL = os.path.join(BASE_DIR, 'static/')
+STATIC_URL_ = str(BASE_DIR) + '/static/'
+STATIC_URL = os.path.join(BASE_DIR, 'static/')
 print(".......................")
 print(STATIC_URL)
 print(BASE_DIR)
+print(STATIC_URL_)
 print(".......................")
 
 # Default primary key field type
