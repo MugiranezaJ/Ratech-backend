@@ -1,1 +1,1 @@
-web: gunicorn rateck_backend.wsgi
+web: gunicorn ratech_backend.wsgi
