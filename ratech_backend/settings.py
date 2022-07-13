@@ -159,5 +159,3 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
