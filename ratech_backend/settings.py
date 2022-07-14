@@ -159,3 +159,26 @@ EMAIL_PORT = os.getenv('EMAIL_PORT')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS')
+
+# Cors
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ORIGIN_WHITELIST = [
+    "http://127.0.0.1:8080",
+    "http://localhost:8080",
+    "http://localhost:3000",
+    "https://rateck.ncutixavier.xyz/",
+
+]
+
+CORS_ORIGIN_REGEX_WHITELIST = [
+    "http://127.0.0.1:8080",
+    "http://localhost:8080",
+    "http://localhost:3000",
+    "https://rateck.ncutixavier.xyz/"
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ncutixavier.xyz"
+]
