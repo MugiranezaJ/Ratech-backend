@@ -1,12 +1,14 @@
+from datetime import datetime
 from django.contrib.auth import authenticate
 from authentication.serializers import UserRegisterSerializer
+from authentication.services.otp_service import OtpService
 # from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.views import APIView
-from .models import UserProfile
+from .models import PasswordReset, UserProfile
 
 
 class Register(APIView):
@@ -63,49 +65,135 @@ class Register(APIView):
 class LoginView(APIView):
 
     def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
+        try:
+            email = request.data.get('email')
+            password = request.data.get('password')
 
-        if not UserProfile.objects.filter(user__email=email).exists():
-            response_data = {
-                'response_code': 0,
-                'data': "login failed",
-                "message": "Email address not found. Please register"
-            }
-            return Response(data=response_data, status=status.HTTP_404_NOT_FOUND)
-
-        user = authenticate(username=email, password=password)
-        if user:
-            # check if user is active
-            profile = UserProfile.objects.get(user=user)
-            if profile.is_active:
-                # Get token
-                token = Token.objects.get(user=user)
-                response_data = {
-                    'response_code': 1,
-                    'data': {
-                        "uuid": profile.uuid,
-                        "token": token.key,
-                        "first_name": profile.user.first_name,
-                        "last_name": profile.user.last_name,
-                        "email": profile.user.email,
-                        "phone": profile.phone,
-                        "gender": profile.gender,
-                        "profile_image": profile.profile_image,
-                        "role": profile.role,
-                        "city": profile.resident_city,
-                        "country": profile.resident_country,
-                    }
-                }
-                return Response(data=response_data, status=status.HTTP_200_OK)
-
-            else:
+            if not UserProfile.objects.filter(user__email=email).exists():
                 response_data = {
                     'response_code': 0,
-                    'data': "user account is not active",
-                    'message': "your account i not activate, activate it or contact admin for support"
+                    'data': "login failed",
+                    "message": "Email address not found. Please register"
                 }
-                return Response(data=response_data, status=status.HTTP_400_BAD_REQUEST)
+                return Response(data=response_data, status=status.HTTP_404_NOT_FOUND)
 
-        response_data = {'response_code': 0, 'data': "login failed", "message": "Email and password is not valid"}
-        return Response(data=response_data, status=status.HTTP_400_BAD_REQUEST)
+            user = authenticate(username=email, password=password)
+            if user:
+                # check if user is active
+                profile = UserProfile.objects.get(user=user)
+                if profile.is_active:
+                    # Get token
+                    token = Token.objects.get(user=user)
+                    response_data = {
+                        'response_code': 1,
+                        'data': {
+                            "uuid": profile.uuid,
+                            "token": token.key,
+                            "first_name": profile.user.first_name,
+                            "last_name": profile.user.last_name,
+                            "email": profile.user.email,
+                            "phone": profile.phone,
+                            "gender": profile.gender,
+                            "profile_image": profile.profile_image,
+                            "role": profile.role,
+                            "city": profile.resident_city,
+                            "country": profile.resident_country,
+                        }
+                    }
+                    return Response(data=response_data, status=status.HTTP_200_OK)
+
+                else:
+                    response_data = {
+                        'response_code': 0,
+                        'data': "user account is not active",
+                        'message': "your account is not active, contact admin for support"
+                    }
+                    return Response(data=response_data, status=status.HTTP_400_BAD_REQUEST)
+
+            response_data = {'response_code': 0, 'data': "login failed", "message": "Email and password is not valid"}
+            return Response(data=response_data, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            response = {
+                'resonse_code': 0,
+                'message': 'an error accured while trying to login',
+                'error':str(e)
+            }
+            return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SendOtpView(APIView):
+     def post(self, request):
+        try:
+            email = request.data.get('email')
+            if not UserProfile.objects.filter(user__email=email, is_active=True).exists():
+                response = {
+                    "response_code": 0,
+                    "message": "User with this email does not exits"
+                }
+                return Response(data=response, status=status.HTTP_404_NOT_FOUND)
+
+            otp = OtpService().generate({"email": email, })
+            res = OtpService.send_email(self, email, otp)
+            print(res)
+
+            response = {
+                'response_code': 1,
+                'message': 'Email sent, check your email for an OTP to reset your password'
+            }
+            return Response(data=response, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            response = {
+                'resonse_code': 0,
+                'message': 'an error accured while sending otp',
+                'error':str(e)
+            }
+            return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ResetPasswordView(APIView):
+   
+    def put(self, request):
+        try:
+            user_email = request.data.get('email', '').strip().lower()
+            if not UserProfile.objects.filter(user__email=user_email, is_active=True).exists():
+                response = {
+                    "response_code": 0,
+                    "message": "User with this email does not exits"
+                }
+
+                return Response(data=response, status=status.HTTP_404_NOT_FOUND)
+
+            user_profile = UserProfile.objects.get(user__email=user_email, is_active=True)
+            otp = request.data.get('otp', '').strip()
+
+            if OtpService().verify(user_email, otp):
+
+                user_profile.user.set_password(request.data.get('password', '').strip())
+                user_profile.user.save()
+
+                PasswordReset.objects.create(
+                    user=user_profile,
+                    is_used=True,
+                    reset_key=otp,
+                    salt=str(datetime.now())
+                )
+
+                response = {
+                    'response_code': 0,
+                    'message': 'Password reset successful'
+                }
+                return Response(data=response, status=status.HTTP_200_OK)
+
+            response = {
+                'response_code': 0,
+                'message': 'Invalid OTP, Password reset failed'
+            }
+            return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            response = {
+                'resonse_code': 0,
+                'message': 'an error accured while resetting password',
+                'error':str(e)
+            }
+            return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

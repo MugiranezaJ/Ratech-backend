@@ -32,3 +32,32 @@ class UserProfile(models.Model):
 
     # def __str__(self):
     #     return "{} -{}".format(self.username, self.email)
+
+class PasswordReset(models.Model):
+    uuid = models.CharField(
+        primary_key=True,
+        unique=True,
+        default=uuid4,
+        max_length=100)
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    reset_key = models.CharField(max_length=225)
+    is_used = models.BooleanField(default=False)
+    salt = models.CharField(max_length=225)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.user.user.first_name + " " + self.user.user.last_name
+
+class Otp(models.Model):
+        
+  uuid = models.CharField(
+        primary_key=True,
+        unique=True,
+        default=uuid4,
+        max_length=100)
+  code = models.CharField(max_length=6)
+  email = models.CharField(max_length=225)
+  is_verified = models.BooleanField(default=False)
+  is_delivered = models.BooleanField(default=False)
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)

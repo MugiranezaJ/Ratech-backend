@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile
+from .models import Otp, PasswordReset, UserProfile
 
 # Register your models here.
 
@@ -15,5 +15,9 @@ class UserProfileAdmin(admin.ModelAdmin):
         "modified_at",
         "is_verified")
 
+class OtpAdmin(admin.ModelAdmin):
+    list_display = ('uuid', 'code', 'email', 'is_verified', 'is_delivered')
 
 admin.site.register(UserProfile, UserProfileAdmin)
+admin.site.register(PasswordReset)
+admin.site.register(Otp, OtpAdmin)
