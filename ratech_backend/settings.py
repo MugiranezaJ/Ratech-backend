@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    'authentication'
+    'authentication',
+    'products'
 ]
 
 MIDDLEWARE = [
@@ -168,7 +169,7 @@ CORS_ORIGIN_WHITELIST = [
     "http://127.0.0.1:8080",
     "http://localhost:8080",
     "http://localhost:3000",
-    "https://rateck.ncutixavier.xyz/",
+    "https://rateck.ncutixavier.xyz",
 
 ]
 
@@ -176,7 +177,7 @@ CORS_ORIGIN_REGEX_WHITELIST = [
     "http://127.0.0.1:8080",
     "http://localhost:8080",
     "http://localhost:3000",
-    "https://rateck.ncutixavier.xyz/"
+    "https://rateck.ncutixavier.xyz"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
