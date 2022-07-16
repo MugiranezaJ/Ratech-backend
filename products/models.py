@@ -18,7 +18,7 @@ class Product(models.Model):
   city = models.CharField(max_length=225)
   tag_code = models.CharField(max_length=225)
   condition = models.CharField(max_length=225)
-  status = models.BooleanField(default=True)
+  status = models.CharField(max_length=255, blank=True)
   specifications = models.TextField(blank=False)
   link = models.CharField(max_length=225)
   price = models.FloatField(default=0)
