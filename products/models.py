@@ -27,3 +27,23 @@ class Product(models.Model):
 
   def __str__(self):
         return self.name
+
+class Order(models.Model):
+      class Types(models.TextChoices):
+            ORDER = 'order'
+            CHECK = 'check'
+      
+      class Status(models.TextChoices):
+            PROCESSING = 'Processing'
+            AVAILABLE = 'Available',
+            OUT_OF_STOCK = 'Out of stock'
+      
+      uuid = models.CharField(
+        primary_key=True,
+        unique=True,
+        default=uuid4,
+        max_length=100)
+      user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, blank=False)
+      product = models.ForeignKey(Product, on_delete=models.CASCADE, blank=False)
+      type = models.CharField(choices=Types.choices, max_length=255, blank=False)
+      status = models.CharField(choices=Status.choices, max_length=255, blank=False)

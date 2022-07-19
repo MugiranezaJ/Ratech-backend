@@ -1,6 +1,6 @@
 from authentication import serializers
 from products.models import Product
-from products.serializers import ProductSerializer
+from products.serializers import OrderSerializer, ProductSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -63,5 +63,34 @@ class ProductSearchView(APIView):
                 'response_code': 0,
                 'error': str(e),
                 'message': "there was error retrieving products"
+            }
+            return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class OrderView(APIView):
+
+    def post(self, request):
+        try:
+            serialized = OrderSerializer(data=request.data, context={"request": "post"}, many=True)
+            if serialized.is_valid():
+                serialized.save()
+                response = {
+                    "response_code": 1,
+                    "data":serialized.data,
+                    "message": "operation done successfully"
+                }
+                return Response(data=response, status=status.HTTP_201_CREATED)
+            else:
+                response = {
+                'response_code': 0,
+                "error": serialized.errors,
+                "message": "an error accured"
+                }
+                return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            response = {
+                'response_code': 0,
+                "error": str(e),
+                "message": "an error accured"
             }
             return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

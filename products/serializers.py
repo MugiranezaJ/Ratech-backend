@@ -1,4 +1,5 @@
-from products.models import Product
+from email.policy import default
+from products.models import Order, Product
 from rest_framework import serializers
 from authentication.models import UserProfile
 
@@ -25,3 +26,35 @@ class ProductSerializer(serializers.Serializer):
         validated_data['user'] = user
         product = Product.objects.create(**validated_data)
         return product
+    
+
+class OrderSerializer(serializers.Serializer):
+    user = serializers.CharField()
+    product = serializers.CharField()
+    type = serializers.CharField()
+    status = serializers.CharField(default='Processing')
+
+    def validate_user(self, value):
+        user = UserProfile.objects.filter(uuid=value)
+        if not user.exists():
+            raise serializers.ValidationError("user does not exist")
+        return value
+    def validate_product(self, value):
+        product = Product.objects.filter(uuid=value)
+        if not product.exists():
+            raise serializers.ValidationError("product deos not exist")
+        return value
+
+    def create(self, validated_data):
+        user = UserProfile.objects.get(uuid=validated_data['user'])
+        product = Product.objects.get(uuid=validated_data['product'])
+        order = Order.objects.filter(user=user, product=product, type=validated_data['type'])
+
+        if order.exists():
+            return order.first()
+
+        validated_data['product'] = product
+        validated_data['user'] = user
+        query = Order.objects.create(**validated_data)
+        print(type(query))
+        return query
