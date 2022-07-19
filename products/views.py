@@ -67,6 +67,7 @@ class ProductSearchView(APIView):
             return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class OrderView(APIView):
+    authentication_classes = [TokenAuthentication]
 
     def post(self, request):
         try:

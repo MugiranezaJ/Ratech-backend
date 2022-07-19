@@ -110,7 +110,7 @@ class LoginView(APIView):
                     }
                     return Response(data=response_data, status=status.HTTP_400_BAD_REQUEST)
 
-            response_data = {'response_code': 0, 'data': "login failed", "message": "Email and password is not valid"}
+            response_data = {'response_code': 0, 'data': "login failed", "message": "Email or password is not valid"}
             return Response(data=response_data, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             print(e)
