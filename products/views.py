@@ -1,5 +1,6 @@
 from authentication import serializers
-from products.models import Product
+from authentication.models import UserProfile
+from products.models import Order, Product
 from products.serializers import OrderSerializer, ProductSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
@@ -71,7 +72,17 @@ class OrderView(APIView):
 
     def post(self, request):
         try:
-            serialized = OrderSerializer(data=request.data, context={"request": "post"}, many=True)
+            products = request.data.get("product")
+            user = request.data.get("user")
+            p_status = request.data.get("status")
+            type = request.data.get("type")
+
+            products_data = []
+            for pro in products:
+                json = {"product":pro, "type":type, "user":user, "status":p_status}
+                products_data.append(json)
+
+            serialized = OrderSerializer(data=products_data, context={"request": "post"}, many=True)
             if serialized.is_valid():
                 serialized.save()
                 response = {
@@ -95,3 +106,19 @@ class OrderView(APIView):
                 "message": "an error accured"
             }
             return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+    def get(self, request):
+        
+        user = UserProfile.objects.get(user=request.user)
+        orders = Order.objects.filter(user=user)
+        serialized = OrderSerializer(orders, many=True)
+
+        response_data = {
+            "response_code": 1,
+            "data": serialized.data,
+            "message":"operation done successfully"
+        }
+
+        return Response(data=response_data, status=status.HTTP_200_OK)
+
