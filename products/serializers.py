@@ -28,11 +28,15 @@ class ProductSerializer(serializers.Serializer):
         return product
     
 
-class OrderSerializer(serializers.Serializer):
+class OrderSerializer(serializers.ModelSerializer):
     user = serializers.CharField()
     product = serializers.CharField()
     type = serializers.CharField()
     status = serializers.CharField(default='Processing')
+
+    class Meta:
+            model = Order
+            fields = "__all__"
 
     def validate_user(self, value):
         user = UserProfile.objects.filter(uuid=value)
