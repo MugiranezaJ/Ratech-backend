@@ -3,7 +3,7 @@ from products.models import Order, Product
 from rest_framework import serializers
 from authentication.models import UserProfile
 
-class ProductSerializer(serializers.Serializer):
+class ProductSerializer(serializers.ModelSerializer):
     user = serializers.CharField()
     name = serializers.CharField()
     country = serializers.CharField()
@@ -13,6 +13,10 @@ class ProductSerializer(serializers.Serializer):
     specifications = serializers.CharField()
     link = serializers.CharField()
     price = serializers.CharField()
+
+    class Meta:
+        model = Product
+        fields = '__all__'
 
     def validate_user(self, value):
         user = UserProfile.objects.filter(uuid=value)
