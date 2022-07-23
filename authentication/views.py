@@ -133,7 +133,7 @@ class SendOtpView(APIView):
                 return Response(data=response, status=status.HTTP_404_NOT_FOUND)
 
             otp = OtpService().generate({"email": email, })
-            res = OtpService.send_email(self, email, otp)
+            res = OtpService.send_email(self, email, 'Password reset', otp, "email_template.html")
             print(res)
 
             response = {

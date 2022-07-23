@@ -31,16 +31,30 @@ class ProductSerializer(serializers.ModelSerializer):
         product = Product.objects.create(**validated_data)
         return product
     
+# class UserProfileSerializerWithDetails(serializers.ModelSerializer):
+#     user = UserRegisterSerializer(read_only=True)
 
+#     class Meta:
+#         model = UserProfile
+#         fields = '__all__'
+# class OrderSelializerWithProducts(serializers.ModelSerializer):
+#     class Meta:
+#         m
 class OrderSerializer(serializers.ModelSerializer):
     user = serializers.CharField()
     product = serializers.CharField()
     type = serializers.CharField()
     status = serializers.CharField(default='Processing')
+    products= serializers.SerializerMethodField()
 
     class Meta:
             model = Order
             fields = "__all__"
+
+    def get_products(self, obj):
+        # print(obj.product)
+        product = ProductSerializer(obj.product)
+        return product.data
 
     def validate_user(self, value):
         user = UserProfile.objects.filter(uuid=value)

@@ -6,7 +6,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'user', 'tag_code', 'condition', 'city', 'country', 'price')
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('product', 'user', 'type', 'status')
+    list_display = ('product', 'user', 'type', 'status', 'created_at')
 
 # Register your models here.
 

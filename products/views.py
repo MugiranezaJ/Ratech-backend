@@ -1,5 +1,6 @@
 from authentication import serializers
 from authentication.models import UserProfile
+from authentication.services.otp_service import OtpService
 from products.models import Order, Product
 from products.serializers import OrderSerializer, ProductSerializer
 from rest_framework.authentication import TokenAuthentication
@@ -76,6 +77,7 @@ class OrderView(APIView):
             user = request.data.get("user")
             p_status = request.data.get("status")
             type = request.data.get("type")
+            profile = UserProfile.objects.filter(user=request.user)
 
             products_data = []
             for pro in products:
@@ -90,6 +92,9 @@ class OrderView(APIView):
                     "data":serialized.data,
                     "message": "operation done successfully"
                 }
+
+                res = OtpService.send_email(self, profile.first().user.email, 'Product order', str(serialized.data), "product_template.html")
+                print(res)
                 return Response(data=response, status=status.HTTP_201_CREATED)
             else:
                 response = {
@@ -111,7 +116,7 @@ class OrderView(APIView):
     def get(self, request):
         
         user = UserProfile.objects.get(user=request.user)
-        orders = Order.objects.filter(user=user)
+        orders = Order.objects.filter(user=user, type='order').order_by('created_at')
         serialized = OrderSerializer(orders, many=True)
 
         response_data = {
@@ -122,3 +127,71 @@ class OrderView(APIView):
 
         return Response(data=response_data, status=status.HTTP_200_OK)
 
+class CheckView(APIView):
+    authentication_classes = [TokenAuthentication]
+
+    def post(self, request):
+        try:
+            products = request.data.get("product")
+            user = request.data.get("user")
+            p_status = request.data.get("status")
+            type = request.data.get("type")
+
+            profile = UserProfile.objects.filter(user=request.user)
+
+            products_data = []
+            for pro in products:
+                json = {"product":pro, "type":type, "user":user, "status":p_status}
+                products_data.append(json)
+
+            serialized = OrderSerializer(data=products_data, context={"request": "post"}, many=True)
+            if serialized.is_valid():
+                serialized.save()
+                response = {
+                    "response_code": 1,
+                    "data":serialized.data,
+                    "message": "operation done successfully"
+                }
+
+                res = OtpService.send_email(self, profile.first().user.email, 'Product Check', str(serialized.data), "product_template.html")
+                print(res)
+                return Response(data=response, status=status.HTTP_201_CREATED)
+            else:
+                response = {
+                'response_code': 0,
+                "error": serialized.errors,
+                "message": "an error accured"
+                }
+                return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            response = {
+                'response_code': 0,
+                "error": str(e),
+                "message": "an error accured"
+            }
+            return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get(self, request):
+        
+        user = UserProfile.objects.get(user=request.user)
+        orders = Order.objects.filter(user=user, type='check').order_by('created_at')
+
+        result = {}
+        for order in orders:
+            date_string = order.created_at.strftime("%m.%d.%Y")
+            serialized_order = OrderSerializer(order)
+            print(serialized_order.data['products'])
+            if date_string in result:
+                result[date_string]['products'].append(serialized_order.data['products'])
+            else:
+                prod = {'created_at': date_string, 'user':user.uuid, 'products': [serialized_order.data['products']]}
+                result[date_string] = prod
+        
+        response_data = {
+            "response_code": 1,
+            "data": result,
+            "message":"operation done successfully"
+        }
+
+        return Response(data=response_data, status=status.HTTP_200_OK)

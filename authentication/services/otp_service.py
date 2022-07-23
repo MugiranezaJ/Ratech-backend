@@ -50,12 +50,12 @@ class OtpService:
         except BaseException as e:
             print("failed to mark otp as delivered")
     
-    def send_email(self, recipient, message):
-        template = render_to_string("email_template.html", {"message": message})
+    def send_email(self, recipient, subject, message, template):
+        template = render_to_string(template, {"message": message})
         res = dict()
         try:
             send_mail(
-                'Password reset',
+                subject,
                 template,
                 settings.EMAIL_HOST_USER,
                 [recipient],

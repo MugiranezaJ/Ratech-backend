@@ -35,7 +35,7 @@ class Order(models.Model):
       
       class Status(models.TextChoices):
             PROCESSING = 'Processing'
-            AVAILABLE = 'Available',
+            AVAILABLE = 'Available'
             OUT_OF_STOCK = 'Out of stock'
       
       uuid = models.CharField(
@@ -47,3 +47,4 @@ class Order(models.Model):
       product = models.ForeignKey(Product, on_delete=models.CASCADE, blank=False)
       type = models.CharField(choices=Types.choices, max_length=255, blank=False)
       status = models.CharField(choices=Status.choices, max_length=255, blank=False)
+      created_at = models.DateTimeField(auto_now_add=True)
