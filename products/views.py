@@ -88,7 +88,7 @@ class OrderView(APIView):
                     response = {
                         'response_code': 0,
                         "error": "",
-                        "message": product.name + " is not available"
+                        "message": product.condition + " " + product.name + " is not available"
                     }
                     return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
 
