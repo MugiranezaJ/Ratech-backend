@@ -83,6 +83,15 @@ class OrderView(APIView):
 
             products_data = []
             for pro in products:
+                product = Product.objects.filter(uuid=pro).first()
+                if not product.status == 'Available':
+                    response = {
+                        'response_code': 0,
+                        "error": "",
+                        "message": "Selected product is not available"
+                    }
+                    return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
+
                 json = {"product":pro, "type":type, "user":user, "status":p_status}
                 products_data.append(json)
 
