@@ -174,24 +174,34 @@ class CheckView(APIView):
 
     def get(self, request):
         
-        user = UserProfile.objects.get(user=request.user)
-        orders = Order.objects.filter(user=user, type='check').order_by('created_at')
+        try:
+            user = UserProfile.objects.get(user=request.user)
+            orders = Order.objects.filter(user=user, type='check').order_by('created_at')
 
-        result = {}
-        for order in orders:
-            date_string = order.created_at.strftime("%m.%d.%Y")
-            serialized_order = OrderSerializer(order)
-            print(serialized_order.data['products'])
-            if date_string in result:
-                result[date_string]['products'].append(serialized_order.data['products'])
-            else:
-                prod = {'created_at': date_string, 'user':user.uuid, 'products': [serialized_order.data['products']]}
-                result[date_string] = prod
-        
-        response_data = {
-            "response_code": 1,
-            "data": result,
-            "message":"operation done successfully"
-        }
+            result = {}
+            for order in orders:
+                date_string = order.created_at.strftime("%m.%d.%Y  %H:%M")
+                created_at = order.created_at.strftime("%m.%d.%Y  %H:%M:%S")
+                serialized_order = OrderSerializer(order)
+                print(serialized_order.data['products'])
+                if date_string in result:
+                    result[date_string]['products'].append(serialized_order.data['products'])
+                else:
+                    prod = {'created_at': created_at, 'user':user.uuid, 'products': [serialized_order.data['products']]}
+                    result[date_string] = prod
+            
+            response_data = {
+                "response_code": 1,
+                "data": result,
+                "message":"operation done successfully"
+            }
 
-        return Response(data=response_data, status=status.HTTP_200_OK)
+            return Response(data=response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            response = {
+                'response_code': 0,
+                "error": str(e),
+                "message": "an error accured"
+            }
+            return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
