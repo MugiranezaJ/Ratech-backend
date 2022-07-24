@@ -1,3 +1,4 @@
+from unittest import result
 from authentication import serializers
 from authentication.models import UserProfile
 from authentication.services.otp_service import OtpService
@@ -119,10 +120,11 @@ class OrderView(APIView):
         user = UserProfile.objects.get(user=request.user)
         orders = Order.objects.filter(user=user, type='order').order_by('created_at')
         serialized = OrderSerializer(orders, many=True)
+        result = formatd_products(user,orders)
 
         response_data = {
             "response_code": 1,
-            "data": serialized.data,
+            "data": result,
             "message":"operation done successfully"
         }
 
@@ -179,17 +181,7 @@ class CheckView(APIView):
             user = UserProfile.objects.get(user=request.user)
             orders = Order.objects.filter(user=user, type='check').order_by('created_at')
 
-            result = {}
-            for order in orders:
-                date_string = order.created_at.strftime("%m-%d-%Y %H:%M")
-                created_at = order.created_at.strftime("%b %d,%Y  %H:%M")
-                serialized_order = OrderSerializer(order)
-                product = {**serialized_order.data['products'], "order_status":serialized_order.data['status']}
-                if date_string in result:
-                    result[date_string]['products'].append(product)
-                else:
-                    prod = {'created_at': created_at, 'user':user.uuid, 'products': [product]}
-                    result[date_string] = prod
+            result = formatd_products(user, orders)
             
             response_data = {
                 "response_code": 1,
@@ -206,3 +198,19 @@ class CheckView(APIView):
                 "message": "an error accured"
             }
             return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    
+def formatd_products(user, payload):
+    result = {}
+    for order in payload:
+        date_string = order.created_at.strftime("%m-%d-%Y %H:%M")
+        created_at = order.created_at.strftime("%b %d,%Y  %H:%M")
+        serialized_order = OrderSerializer(order)
+        product = {**serialized_order.data['products'], "order_status":serialized_order.data['status']}
+        if date_string in result:
+            result[date_string]['products'].append(product)
+        else:
+            prod = {'created_at': created_at, 'user':user.uuid, 'products': [product]}
+            result[date_string] = prod
+    
+    return result
