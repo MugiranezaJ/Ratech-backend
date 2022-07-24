@@ -9,6 +9,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.views import APIView
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.conf import settings
 
 # Create your views here.
 
@@ -180,10 +181,9 @@ class CheckView(APIView):
 
             result = {}
             for order in orders:
-                date_string = order.created_at.strftime("%m.%d.%Y  %H:%M")
-                created_at = order.created_at.strftime("%m.%d.%Y  %H:%M:%S")
+                date_string = order.created_at.strftime("%m.%d.%Y")
+                created_at = order.created_at.strftime("%m.%d.%Y  %H:%M:%S ")
                 serialized_order = OrderSerializer(order)
-                print(serialized_order.data['products'])
                 if date_string in result:
                     result[date_string]['products'].append(serialized_order.data['products'])
                 else:
