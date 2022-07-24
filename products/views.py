@@ -182,7 +182,7 @@ class CheckView(APIView):
             result = {}
             for order in orders:
                 date_string = order.created_at.strftime("%m-%d-%Y")
-                created_at = order.created_at.strftime("%b %d,%Y %H:%M %p")
+                created_at = order.created_at.strftime("%b %d,%Y")
                 serialized_order = OrderSerializer(order)
                 if date_string in result:
                     result[date_string]['products'].append(serialized_order.data['products'])
