@@ -70,10 +70,10 @@ class OrderSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = UserProfile.objects.get(uuid=validated_data['user'])
         product = Product.objects.get(uuid=validated_data['product'])
-        order = Order.objects.filter(user=user, product=product, type=validated_data['type'])
+        # order = Order.objects.filter(user=user, product=product, type=validated_data['type'])
 
-        if order.exists():
-            return order.first()
+        # if order.exists():
+        #     return order.first()
 
         validated_data['product'] = product
         validated_data['user'] = user
