@@ -104,7 +104,7 @@ class OrderView(APIView):
                     "message": "operation done successfully"
                 }
 
-                res = OtpService.send_email(self, settings.ADMIN_EMAIL, 'Product order', str(serialized.data), "product_template.html")
+                res = OtpService.send_email(self, settings.ADMIN_EMAIL, 'Product order', str(serialized.data), "product_email.html")
                 print(res)
                 return Response(data=response, status=status.HTTP_201_CREATED)
             else:
@@ -127,7 +127,7 @@ class OrderView(APIView):
     def get(self, request):
         
         user = UserProfile.objects.get(user=request.user)
-        orders = Order.objects.filter(user=user, type='order').order_by('created_at')
+        orders = Order.objects.filter(user=user, type='order').order_by('-created_at')
         serialized = OrderSerializer(orders, many=True)
         result = formatd_products(user,orders)
 
@@ -153,7 +153,8 @@ class CheckView(APIView):
 
             products_data = []
             for pro in products:
-                json = {"product":pro, "type":type, "user":user, "status":p_status}
+                product = Product.objects.filter(uuid=pro).first()
+                json = {"product":pro, "type":type, "user":user, "status":product.status}
                 products_data.append(json)
 
             serialized = OrderSerializer(data=products_data, context={"request": "post"}, many=True)
@@ -165,7 +166,7 @@ class CheckView(APIView):
                     "message": "operation done successfully"
                 }
 
-                res = OtpService.send_email(self, settings.ADMIN_EMAIL, 'Product Check', str(serialized.data), "product_template.html")
+                res = OtpService.send_email(self, settings.ADMIN_EMAIL, 'Product Check', str(serialized.data), "product_email.html")
                 print(res)
                 return Response(data=response, status=status.HTTP_201_CREATED)
             else:
@@ -188,7 +189,7 @@ class CheckView(APIView):
         
         try:
             user = UserProfile.objects.get(user=request.user)
-            orders = Order.objects.filter(user=user, type='check').order_by('created_at')
+            orders = Order.objects.filter(user=user, type='check').order_by('-created_at')
 
             result = formatd_products(user, orders)
             
