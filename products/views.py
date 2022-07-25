@@ -146,7 +146,7 @@ class CheckView(APIView):
         try:
             products = request.data.get("product")
             user = request.data.get("user")
-            p_status = request.data.get("status")
+            status = request.data.get("status")
             type = request.data.get("type")
 
             profile = UserProfile.objects.filter(user=request.user)
@@ -154,7 +154,9 @@ class CheckView(APIView):
             products_data = []
             for pro in products:
                 product = Product.objects.filter(uuid=pro).first()
-                json = {"product":pro, "type":type, "user":user, "status":product.status}
+                if product.status == 'Available':
+                    status = product.status
+                json = {"product":pro, "type":type, "user":user, "status":status}
                 products_data.append(json)
 
             serialized = OrderSerializer(data=products_data, context={"request": "post"}, many=True)
