@@ -104,7 +104,7 @@ class OrderView(APIView):
                     "message": "operation done successfully"
                 }
 
-                res = OtpService.send_email(self, settings.ADMIN_EMAIL, 'Product order', str(serialized.data), "product_email.html")
+                res = OtpService.send_email(self, settings.ADMIN_EMAIL, 'Rateck Live Stock - Product order', serialized.data, "product_template.html")
                 print(res)
                 return Response(data=response, status=status.HTTP_201_CREATED)
             else:
@@ -168,7 +168,7 @@ class CheckView(APIView):
                     "message": "operation done successfully"
                 }
 
-                res = OtpService.send_email(self, settings.ADMIN_EMAIL, 'Product Check', str(serialized.data), "product_email.html")
+                res = OtpService.send_email(self, settings.ADMIN_EMAIL, 'Rateck Live Stock - Product Check', serialized.data, "product_template.html")
                 print(res)
                 return Response(data=response, status=status.HTTP_201_CREATED)
             else:
