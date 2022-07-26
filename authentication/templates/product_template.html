@@ -4,7 +4,8 @@ Product
 
     {% for product in message %}
         {{ product.products.condition }} {{product.products.name}} - {{product.products.price}}
-        
+        {{ product.user}}
+
     {% endfor %}
 
 
