@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.views import APIView
+from authentication.permissions import IsOwnerOrReadOnly as IsOwnerOnly
+from rest_framework.permissions import IsAuthenticated
 from .models import PasswordReset, UserProfile
 
 
@@ -197,3 +199,42 @@ class ResetPasswordView(APIView):
                 'error':str(e)
             }
             return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsOwnerOnly, IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def put(self, request):
+        if not UserProfile.objects.filter(user=request.user, is_active=True).exists():
+            response = { 'message': 'User does not exists' }
+            return Response(data=response, status=status.HTTP_404_NOT_FOUND)
+
+        user = UserProfile.objects.get(user=request.user, is_active=True)
+        new_password = request.data.get('password').strip()
+        old_password = request.data.get('old_password').strip()
+
+        if not new_password:
+            response = {
+                "responseCode": 0,
+                'message': 'Password is needed'
+            }
+            return Response(data=response, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.user.check_password(old_password):
+            response = {
+                "reponseCode": 0,
+                'message': 'Wrong old password'
+            }
+            return Response(data=response,
+         status=status.HTTP_400_BAD_REQUEST)
+
+        user.user.set_password(new_password)
+        user.user.save()
+
+        response = {
+            "responseCode": 1,
+            'message': 'Password has been changed successfully'
+        }
+        return Response(data=response, status=status.HTTP_200_OK)
+
